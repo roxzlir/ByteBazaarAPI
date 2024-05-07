@@ -35,6 +35,7 @@ namespace ByteBazaarAPI
             app.UseAuthorization();
 
             app.MapProductEndpoints();
+            app.MapCategoryEndpoints();
 
             app.Run();
         }
