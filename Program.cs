@@ -36,6 +36,19 @@ namespace ByteBazaarAPI
 
             app.MapProductEndpoints();
             app.MapCategoryEndpoints();
+            //app.Use(async (context, next) =>
+            //{
+            //    context.Response.OnStarting(state =>
+            //    {
+            //        var httpContext = (HttpContext)state;
+            //        httpContext.Response.Headers.Remove("content-type");
+            //        return Task.CompletedTask;
+            //    }, context);
+
+            //    await next();
+            //});
+
+
 
             app.Run();
         }

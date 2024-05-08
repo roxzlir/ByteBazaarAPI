@@ -20,39 +20,40 @@ namespace ByteBazaarAPI.Endpoints
         }
 
         //GET - Hämtar alla produkter som finns
-        private static async Task<IActionResult> GetAllProducts(AppDbContext context)
+        private static async Task<Results<Ok<List<Product>>, NotFound<string>>> GetAllProducts(AppDbContext context)
         {
             var products = await context.Products.ToListAsync();
             if (!products.Any())
             {
-                return new NotFoundObjectResult("No product found");
+                return TypedResults.NotFound("No product not found");
             }
-            return new OkObjectResult(products);
+            return TypedResults.Ok(products);
         }
+
         //GET - Hämtar en produkt baserat på ID
-        private static async Task<IActionResult> GetProductById(int id, AppDbContext context)
+        private static async Task<Results<Ok<Product>, NotFound<string>>> GetProductById(int id, AppDbContext context)
         {
             var product = await context.Products.FindAsync(id);
             if (product == null)
             {
-                return new NotFoundObjectResult($"Product with id: {id} found");
+                return TypedResults.NotFound($"Product with id: {id} not found");
             }
-            return new OkObjectResult(product);
+            return TypedResults.Ok(product);
         }
         //POST - Lägg till ny person
-        private static async Task<IActionResult> AddProduct(Product product, AppDbContext context)
+        private static async Task<Created<Product>> AddProduct(Product product, AppDbContext context)
         {
             context.Products.Add(product);
             await context.SaveChangesAsync();
-            return new CreatedResult($"/products/{product.ProductId}", product);
+            return TypedResults.Created($"/products/{product.ProductId}", product);
         }
         //PUT - Uppdatera en existerande produkt
-        private static async Task<IActionResult> UpdateProduct(int id, Product updatedProduct, AppDbContext context)
+        private static async Task<Results<Ok<Product>, NotFound<string>>> UpdateProduct(int id, Product updatedProduct, AppDbContext context)
         {
             var product = await context.Products.FindAsync(id);
             if (product == null)
             {
-                return new NotFoundObjectResult($"Product with id: {id} found");
+                return TypedResults.NotFound($"Product with id: {id} not found");
             }
             /*product = updatedProduct;*/ //Vet ej om detta räcker egentligen bara?
 
@@ -60,24 +61,25 @@ namespace ByteBazaarAPI.Endpoints
             product.Title = updatedProduct.Title;
             product.Description = updatedProduct.Description;
             product.Price = updatedProduct.Price;
-            product.Image = updatedProduct.Image;
             product.FkCategoryId = updatedProduct.FkCategoryId;
+
+
 
             context.Products.Update(product);
             await context.SaveChangesAsync();
-            return new OkObjectResult(product);
+            return TypedResults.Ok(product);
         }
         //DELETE - Radera en produkt
-        private static async Task<IActionResult> DeleteProduct(int id, AppDbContext context)
+        private static async Task<Results<Ok<string>, NotFound<string>>> DeleteProduct(int id, AppDbContext context)
         {
             var product = await context.Products.FindAsync(id);
             if(product == null)
             {
-                return new NotFoundObjectResult($"Product with id: {id} found");
+                return TypedResults.NotFound($"Product with id: {id} not found");
             }
             context.Products.Remove(product);
             await context.SaveChangesAsync();
-            return new NoContentResult();
+            return TypedResults.Ok($"Product with id: {id} was deleted");
         }
 
     }

@@ -13,8 +13,8 @@ namespace ByteBazaarAPI.Models
         public string Description { get; set; }
         [Column(TypeName = "decimal(10,2)")]
         public decimal Price { get; set; }
-        [StringLength(250)]
-        public string Image { get; set; }
-        public int? FkCategoryId { get; set; }
+        [ForeignKey("Category")]
+        public int FkCategoryId { get; set; }
+        public ICollection<ProductImage>? Images { get; set; }
     }
 }

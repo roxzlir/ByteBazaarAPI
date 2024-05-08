@@ -1,5 +1,6 @@
 ﻿using ByteBazaarAPI.Data;
 using ByteBazaarAPI.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,57 +18,58 @@ namespace ByteBazaarAPI.Endpoints
         }
 
         //GET - Hämtar alla kategorier som finns
-        private static async Task<IActionResult> GetAllCategories(AppDbContext context)
+        private static async Task<Results<Ok<List<Category>>, NotFound<string>>> GetAllCategories(AppDbContext context)
         {
             var categories = await context.Categories.ToListAsync();
             if (!categories.Any())
             {
-                return new NotFoundObjectResult("No categories found");
+                return TypedResults.NotFound("No categories found");
             }
-            return new OkObjectResult(categories);
+            return TypedResults.Ok(categories);
+    
         }
         //GET - Hämtar en kategori baserat på ID
-        private static async Task<IActionResult> GetCategoryById(int id, AppDbContext context)
+        private static async Task<Results<Ok<Category>, NotFound<string>>> GetCategoryById(int id, AppDbContext context)
         {
             var category = await context.Categories.FindAsync(id);
             if (category == null)
             {
-                return new NotFoundObjectResult($"Category with id: {id} found");
+                return TypedResults.NotFound($"Category with id: {id} found");
             }
-            return new OkObjectResult(category);
+            return TypedResults.Ok(category);
         }
         //POST - Lägg till ny kategori
-        private static async Task<IActionResult> AddCategory(Category category, AppDbContext context)
+        private static async Task<Created<Category>> AddCategory(Category category, AppDbContext context)
         {
             context.Categories.Add(category);
             await context.SaveChangesAsync();
-            return new CreatedResult($"/categories/{category.CategoryId}", category);
+            return TypedResults.Created($"/categories/{category.CategoryId}", category);
         }
         //PUT - Uppdatera en existerande kategori
-        private static async Task<IActionResult> UpdateCategory(int id, Category updatedCategory, AppDbContext context)
+        private static async Task<Results<Ok<Category>, NotFound<string>>> UpdateCategory(int id, Category updatedCategory, AppDbContext context)
         {
             var category = await context.Categories.FindAsync(id);
             if (category == null)
             {
-                return new NotFoundObjectResult($"Category with id: {id} found");
+                return TypedResults.NotFound($"Category with id: {id} found");
             }
                 category.Title = updatedCategory.Title;
 
             context.Categories.Update(category);
             await context.SaveChangesAsync();
-            return new OkObjectResult(category);
+            return TypedResults.Ok(category);
         }
         //DELETE - Radera en kategori
-        private static async Task<IActionResult> DeleteCategory(int id, AppDbContext context)
+        private static async Task<Results<Ok<string>, NotFound<string>>> DeleteCategory(int id, AppDbContext context)
         {
             var category = await context.Categories.FindAsync(id);
             if (category == null)
             {
-                return new NotFoundObjectResult($"Category with id: {id} found");
+                return TypedResults.NotFound($"Category with id: {id} not found");
             }
             context.Categories.Remove(category);
             await context.SaveChangesAsync();
-            return new NoContentResult();
+            return TypedResults.Ok($"Category with id: {id}, was deleted");
         }
     }
 }
