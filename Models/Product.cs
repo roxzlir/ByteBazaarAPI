@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ByteBazaarAPI.Models
 {
@@ -15,6 +16,9 @@ namespace ByteBazaarAPI.Models
         public decimal Price { get; set; }
         [ForeignKey("Category")]
         public int FkCategoryId { get; set; }
+        public string ProductURL { get; set; }
+
         public ICollection<ProductImage>? Images { get; set; }
+
     }
 }

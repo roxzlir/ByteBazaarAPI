@@ -1,4 +1,5 @@
 ﻿using ByteBazaarAPI.Data;
+using ByteBazaarAPI.DTO;
 using ByteBazaarAPI.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -20,14 +21,38 @@ namespace ByteBazaarAPI.Endpoints
         }
 
         //GET - Hämtar alla produkter som finns
-        private static async Task<Results<Ok<List<Product>>, NotFound<string>>> GetAllProducts(AppDbContext context)
+        private static async Task<Results<Ok<List<ProductWithImagesDTO>>, NotFound<string>>> GetAllProducts(AppDbContext context)
         {
-            var products = await context.Products.ToListAsync();
-            if (!products.Any())
+
+            var query = from image in context.ProductImages
+                        join prod in context.Products on image.FkProductId equals prod.ProductId
+                        join cat in context.Categories on prod.FkCategoryId equals cat.CategoryId
+                        select new ProductWithImagesDTO
+                        {
+                            ProductId = prod.ProductId,
+                            Title = prod.Title,
+                            Description = prod.Description,
+                            Price = prod.Price,
+                            Category = cat.Title,
+                            Images = new List<string> { image.URL }
+                        };
+
+            var grouped = query.GroupBy(x => x.ProductId).Select(grp => new ProductWithImagesDTO
             {
-                return TypedResults.NotFound("No product not found");
+                ProductId = grp.Key,
+                Title = grp.First().Title,
+                Description = grp.First().Description,
+                Price = grp.First().Price,
+                Category = grp.First().Category,
+                Images = grp.Select(x => x.Images.Single()).ToList()
+            }).ToList();
+
+            if (!grouped.Any())
+            {
+                return TypedResults.NotFound("No products found");
             }
-            return TypedResults.Ok(products);
+
+            return TypedResults.Ok(grouped);
         }
 
         //GET - Hämtar en produkt baserat på ID
@@ -40,13 +65,33 @@ namespace ByteBazaarAPI.Endpoints
             }
             return TypedResults.Ok(product);
         }
-        //POST - Lägg till ny person
+        //POST - Lägg till ny produkt
         private static async Task<Created<Product>> AddProduct(Product product, AppDbContext context)
         {
+
+            
             context.Products.Add(product);
             await context.SaveChangesAsync();
+
+            var image = new ProductImage
+            {
+                URL = product.ProductURL,
+                FkProductId = product.ProductId,
+            };
+
+            context.ProductImages.Add(image);
+            await context.SaveChangesAsync();
+
             return TypedResults.Created($"/products/{product.ProductId}", product);
         }
+
+
+        //var addedProduct = await context.Products.Where(x => x.Title == product.Title).FirstOrDefaultAsync();
+
+
+        //var connectImage = await context.ProductImages.Where(x => x.URL == addedProduct.Images.Where(x => x.URL == "d");
+
+
         //PUT - Uppdatera en existerande produkt
         private static async Task<Results<Ok<Product>, NotFound<string>>> UpdateProduct(int id, Product updatedProduct, AppDbContext context)
         {
