@@ -1,7 +1,6 @@
 ﻿using ByteBazaarAPI.Data;
 using ByteBazaarAPI.DTO;
 using ByteBazaarAPI.Models;
-using ByteBazaarAPI.ViewModels;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +43,7 @@ namespace ByteBazaarAPI.Endpoints
                 Title = grp.First().Title,
                 Description = grp.First().Description,
                 Price = grp.First().Price,
+                Quantity = grp.First().Quantity,
                 Category = grp.First().Category,
                 Images = grp.Select(x => x.Images.Single()).ToList()
             }).ToList();
@@ -67,20 +67,28 @@ namespace ByteBazaarAPI.Endpoints
             return TypedResults.Ok(product);
         }
         //POST - Lägg till ny produkt
-        private static async Task<Results<Created<ProductWithImageVM>, NoContent>> AddProduct(ProductWithImageVM model, AppDbContext context)
+        private static async Task<Results<Created<ProductDTO>, NoContent>> AddProduct(ProductDTO model, AppDbContext context)
         {
 
             using var transaction = context.Database.BeginTransaction();
             try
             {
+                var product = new Product
+                {
+                    Title = model.Title,
+                    Description = model.Description,
+                    Price = model.Price,
+                    FkCategoryId = model.FkCategoryId,
+                    Quantity = model.Quantity
+                };
 
-                context.Products.Add(model.Product);
+                context.Products.Add(product);
                 await context.SaveChangesAsync();
 
                 var image = new ProductImage
                 {
                     URL = model.ImageURL,
-                    FkProductId = model.Product.ProductId
+                    FkProductId = product.ProductId
                 };
                 context.ProductImages.Add(image);
                 await context.SaveChangesAsync();
@@ -99,32 +107,12 @@ namespace ByteBazaarAPI.Endpoints
                 };
                 return TypedResults.NoContent();
             }
-
-
-            //context.Products.Add(product);
-            //await context.SaveChangesAsync();
-
-            //var image = new ProductImage
-            //{
-            //    URL = product.ProductURL,
-            //    FkProductId = product.ProductId,
-            //};
-
-            //context.ProductImages.Add(image);
-            //await context.SaveChangesAsync();
-
-            //return TypedResults.Created($"/products/{product.ProductId}", product);
         }
 
 
-        //var addedProduct = await context.Products.Where(x => x.Title == product.Title).FirstOrDefaultAsync();
-
-
-        //var connectImage = await context.ProductImages.Where(x => x.URL == addedProduct.Images.Where(x => x.URL == "d");
-
 
         //PUT - Uppdatera en existerande produkt
-        private static async Task<Results<Ok<Product>, NotFound<string>>> UpdateProduct(int id, Product updatedProduct, AppDbContext context)
+        private static async Task<Results<Ok<ProductDTO>, NotFound<string>>> UpdateProduct(int id, ProductDTO updatedProduct, AppDbContext context)
         {
             var product = await context.Products.FindAsync(id);
             if (product == null)
@@ -138,10 +126,11 @@ namespace ByteBazaarAPI.Endpoints
             product.Description = updatedProduct.Description;
             product.Price = updatedProduct.Price;
             product.FkCategoryId = updatedProduct.FkCategoryId;
+            product.Quantity = updatedProduct.Quantity;
 
             context.Products.Update(product);
             await context.SaveChangesAsync();
-            return TypedResults.Ok(product);
+            return TypedResults.Ok(updatedProduct);
         }
         //DELETE - Radera en produkt
         private static async Task<Results<Ok<string>, NotFound<string>>> DeleteProduct(int id, AppDbContext context)

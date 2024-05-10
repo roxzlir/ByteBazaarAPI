@@ -1,4 +1,5 @@
 ﻿using ByteBazaarAPI.Data;
+using ByteBazaarAPI.DTO;
 using ByteBazaarAPI.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -39,25 +40,31 @@ namespace ByteBazaarAPI.Endpoints
             return TypedResults.Ok(category);
         }
         //POST - Lägg till ny kategori
-        private static async Task<Created<Category>> AddCategory(Category category, AppDbContext context)
+        private static async Task<Created<CategoryDTO>> AddCategory(CategoryDTO categoryDTO, AppDbContext context)
         {
+            var category = new Category
+            {
+                Title = categoryDTO.Title,
+                Description = categoryDTO.Description
+            };
             context.Categories.Add(category);
             await context.SaveChangesAsync();
-            return TypedResults.Created($"/categories/{category.CategoryId}", category);
+            return TypedResults.Created($"/categories/{categoryDTO.Title}", categoryDTO);
         }
         //PUT - Uppdatera en existerande kategori
-        private static async Task<Results<Ok<Category>, NotFound<string>>> UpdateCategory(int id, Category updatedCategory, AppDbContext context)
+        private static async Task<Results<Ok<CategoryDTO>, NotFound<string>>> UpdateCategory(int id, CategoryDTO updatedCategory, AppDbContext context)
         {
             var category = await context.Categories.FindAsync(id);
             if (category == null)
             {
                 return TypedResults.NotFound($"Category with id: {id} found");
             }
-                category.Title = updatedCategory.Title;
+            category.Title = updatedCategory.Title;
+            category.Description = updatedCategory.Description;
 
             context.Categories.Update(category);
             await context.SaveChangesAsync();
-            return TypedResults.Ok(category);
+            return TypedResults.Ok(updatedCategory);
         }
         //DELETE - Radera en kategori
         private static async Task<Results<Ok<string>, NotFound<string>>> DeleteCategory(int id, AppDbContext context)

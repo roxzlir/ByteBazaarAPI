@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ByteBazaarAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240507115323_2-Tables")]
-    partial class _2Tables
+    [Migration("20240510091746_PropCategory")]
+    partial class PropCategory
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,6 +31,11 @@ namespace ByteBazaarAPI.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -58,13 +63,11 @@ namespace ByteBazaarAPI.Migrations
                     b.Property<int>("FkCategoryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Image")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -73,7 +76,54 @@ namespace ByteBazaarAPI.Migrations
 
                     b.HasKey("ProductId");
 
+                    b.HasIndex("FkCategoryId");
+
                     b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("ByteBazaarAPI.Models.ProductImage", b =>
+                {
+                    b.Property<int>("ProductImageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProductImageId"));
+
+                    b.Property<int>("FkProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("URL")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.HasKey("ProductImageId");
+
+                    b.HasIndex("FkProductId");
+
+                    b.ToTable("ProductImages");
+                });
+
+            modelBuilder.Entity("ByteBazaarAPI.Models.Product", b =>
+                {
+                    b.HasOne("ByteBazaarAPI.Models.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("FkCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("ByteBazaarAPI.Models.ProductImage", b =>
+                {
+                    b.HasOne("ByteBazaarAPI.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("FkProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
                 });
 #pragma warning restore 612, 618
         }

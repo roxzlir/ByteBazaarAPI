@@ -5,15 +5,16 @@
 namespace ByteBazaarAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class TestURLProp : Migration
+    public partial class PropCategory : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "ProductURL",
-                table: "Products",
-                type: "nvarchar(max)",
+                name: "Description",
+                table: "Categories",
+                type: "nvarchar(250)",
+                maxLength: 250,
                 nullable: false,
                 defaultValue: "");
         }
@@ -22,8 +23,8 @@ namespace ByteBazaarAPI.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "ProductURL",
-                table: "Products");
+                name: "Description",
+                table: "Categories");
         }
     }
 }
