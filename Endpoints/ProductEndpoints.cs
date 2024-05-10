@@ -1,6 +1,7 @@
 ﻿using ByteBazaarAPI.Data;
 using ByteBazaarAPI.DTO;
 using ByteBazaarAPI.Models;
+using ByteBazaarAPI.ViewModels;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -66,23 +67,53 @@ namespace ByteBazaarAPI.Endpoints
             return TypedResults.Ok(product);
         }
         //POST - Lägg till ny produkt
-        private static async Task<Created<Product>> AddProduct(Product product, AppDbContext context)
+        private static async Task<Results<Created<ProductWithImageVM>, NoContent>> AddProduct(ProductWithImageVM model, AppDbContext context)
         {
 
-            
-            context.Products.Add(product);
-            await context.SaveChangesAsync();
-
-            var image = new ProductImage
+            using var transaction = context.Database.BeginTransaction();
+            try
             {
-                URL = product.ProductURL,
-                FkProductId = product.ProductId,
-            };
 
-            context.ProductImages.Add(image);
-            await context.SaveChangesAsync();
+                context.Products.Add(model.Product);
+                await context.SaveChangesAsync();
 
-            return TypedResults.Created($"/products/{product.ProductId}", product);
+                var image = new ProductImage
+                {
+                    URL = model.ImageURL,
+                    FkProductId = model.Product.ProductId
+                };
+                context.ProductImages.Add(image);
+                await context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+                return TypedResults.Created($"/products/{model}", model);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                var problemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Title = "An error occurred while adding the product and image",
+                    Detail = ex.Message // Du kan lägga till mer information här om du vill
+                };
+                return TypedResults.NoContent();
+            }
+
+
+            //context.Products.Add(product);
+            //await context.SaveChangesAsync();
+
+            //var image = new ProductImage
+            //{
+            //    URL = product.ProductURL,
+            //    FkProductId = product.ProductId,
+            //};
+
+            //context.ProductImages.Add(image);
+            //await context.SaveChangesAsync();
+
+            //return TypedResults.Created($"/products/{product.ProductId}", product);
         }
 
 
@@ -107,8 +138,6 @@ namespace ByteBazaarAPI.Endpoints
             product.Description = updatedProduct.Description;
             product.Price = updatedProduct.Price;
             product.FkCategoryId = updatedProduct.FkCategoryId;
-
-
 
             context.Products.Update(product);
             await context.SaveChangesAsync();

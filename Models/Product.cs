@@ -18,7 +18,7 @@ namespace ByteBazaarAPI.Models
         public int FkCategoryId { get; set; }
         public string ProductURL { get; set; }
 
-        public ICollection<ProductImage>? Images { get; set; }
+        //public ICollection<ProductImage>? Images { get; set; }
 
     }
 }
