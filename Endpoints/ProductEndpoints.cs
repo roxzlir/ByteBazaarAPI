@@ -1,6 +1,7 @@
 ﻿using ByteBazaarAPI.Data;
 using ByteBazaarAPI.DTO;
 using ByteBazaarAPI.Models;
+
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -27,14 +28,18 @@ namespace ByteBazaarAPI.Endpoints
             var query = from image in context.ProductImages
                         join prod in context.Products on image.FkProductId equals prod.ProductId
                         join cat in context.Categories on prod.FkCategoryId equals cat.CategoryId
-                        select new ProductWithImagesDTO
+                        select new 
                         {
                             ProductId = prod.ProductId,
                             Title = prod.Title,
                             Description = prod.Description,
                             Price = prod.Price,
+                            Quantity = prod.Quantity,
                             Category = cat.Title,
-                            Images = new List<string> { image.URL }
+                            ImageId = image.ProductImageId,
+                            ImageUrl = image.URL,
+                            ImageFk = image.FkProductId
+
                         };
 
             var grouped = query.GroupBy(x => x.ProductId).Select(grp => new ProductWithImagesDTO
@@ -45,8 +50,14 @@ namespace ByteBazaarAPI.Endpoints
                 Price = grp.First().Price,
                 Quantity = grp.First().Quantity,
                 Category = grp.First().Category,
-                Images = grp.Select(x => x.Images.Single()).ToList()
+                Images = grp.Select(x => new ProductImage
+                {
+                    ProductImageId = x.ImageId,
+                    URL = x.ImageUrl,
+                    FkProductId = x.ImageFk
+                }).ToList()
             }).ToList();
+            
 
             if (!grouped.Any())
             {
@@ -57,14 +68,50 @@ namespace ByteBazaarAPI.Endpoints
         }
 
         //GET - Hämtar en produkt baserat på ID
-        private static async Task<Results<Ok<Product>, NotFound<string>>> GetProductById(int id, AppDbContext context)
+        private static async Task<Results<Ok<List<ProductWithImagesDTO>>, NotFound<string>>> GetProductById(int id, AppDbContext context)
         {
-            var product = await context.Products.FindAsync(id);
-            if (product == null)
+            var query = from image in context.ProductImages
+                        join prod in context.Products on image.FkProductId equals prod.ProductId
+                        join cat in context.Categories on prod.FkCategoryId equals cat.CategoryId
+                        select new
+                        {
+                            ProductId = prod.ProductId,
+                            Title = prod.Title,
+                            Description = prod.Description,
+                            Price = prod.Price,
+                            Quantity = prod.Quantity,
+                            Category = cat.Title,
+                            ImageId = image.ProductImageId,
+                            ImageUrl = image.URL,
+                            ImageFk = image.FkProductId
+
+                        };
+
+            query.Where(i => i.ProductId == id);
+
+            if (query == null)
             {
                 return TypedResults.NotFound($"Product with id: {id} not found");
             }
-            return TypedResults.Ok(product);
+
+            var grouped = query.GroupBy(x => x.ProductId).Select(grp => new ProductWithImagesDTO
+            {
+                ProductId = grp.Key,
+                Title = grp.First().Title,
+                Description = grp.First().Description,
+                Price = grp.First().Price,
+                Quantity = grp.First().Quantity,
+                Category = grp.First().Category,
+                Images = grp.Select(x => new ProductImage
+                {
+                    ProductImageId = x.ImageId,
+                    URL = x.ImageUrl,
+                    FkProductId = x.ImageFk
+                }).ToList()
+            }).ToList();
+
+
+            return TypedResults.Ok(grouped);
         }
         //POST - Lägg till ny produkt
         private static async Task<Results<Created<ProductDTO>, NoContent>> AddProduct(ProductDTO model, AppDbContext context)

@@ -36,37 +36,6 @@ namespace ByteBazaarAPI
 
             app.UseAuthorization();
 
-
-            app.MapGet("/emilproduct", async (AppDbContext context) =>
-            {
-                var query = from image in context.ProductImages
-                            join prod in context.Products on image.FkProductId equals prod.ProductId
-                            join cat in context.Categories on prod.FkCategoryId equals cat.CategoryId
-                            select new
-                            {
-                                prod.Title,
-                                prod.Description,
-                                prod.Price,
-                                category = cat.Title,
-                                image.URL
-
-                            };
-
-                var grouped = query.GroupBy(x => x.Title).Select(grp => new
-                {
-                    Title = grp.Key,
-                    Description = grp.First().Description,
-                    Price = grp.First().Price,
-                    category = grp.First().category,
-                    image = grp.Select(x => x.URL).ToList()
-                }).ToList();
-
-                return Results.Ok(grouped);
-            });
-
-
-
-
             app.MapProductEndpoints();
             app.MapCategoryEndpoints();
             app.MapProductImageEndpoints();

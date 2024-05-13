@@ -13,8 +13,9 @@ namespace ByteBazaarAPI.Endpoints
             app.MapGet("/products/images", GetAllImages);
             app.MapGet("/products/images/{id:int}", GetImageById);
             app.MapPost("/products/images", AddImage);
-            app.MapPut("/products/images/{id:int}", UpdateImage);
             app.MapDelete("/products/images/{id:int}", DeleteImage);
+
+            //app.MapPut("/products/images/{id:int}", UpdateImage);
         }
 
         //GET - Hämtar alla bilder som finns
@@ -51,29 +52,23 @@ namespace ByteBazaarAPI.Endpoints
             return TypedResults.Created($"/product/image/{imageDTO.URL}", imageDTO);
         }
         //PUT - Uppdatera en existerande bild
-        private static async Task<Results<Ok<ProductImageDTO>, NotFound<string>>> UpdateImage(int id, ProductImageDTO updateImage, AppDbContext context)
-        {
+        //private static async Task<Results<Ok<ProductImageDTO>, NotFound<string>>> UpdateImage(int id, ProductImageDTO updateImage, AppDbContext context)
+        //{
             
-            //var image = from i in context.ProductImages where i.URL == url select new { i };
-
-            //image.ToListAsync();
-
             
-            var image = await context.ProductImages.FindAsync();
+        //    var image = await context.ProductImages.FindAsync();
 
-            if (image == null)
-            {
-                return TypedResults.NotFound($"Image with id: {id} not found");
-            }
-            image.URL = updateImage.URL;
-            image.FkProductId = updateImage.FkProductId;
+        //    if (image == null)
+        //    {
+        //        return TypedResults.NotFound($"Image with id: {id} not found");
+        //    }
+        //    image.URL = updateImage.URL;
+        //    image.FkProductId = updateImage.FkProductId;
 
-            
-
-            context.ProductImages.Update(image);
-            await context.SaveChangesAsync();
-            return TypedResults.Ok(updateImage);
-        }
+        //    context.ProductImages.Update(image);
+        //    await context.SaveChangesAsync();
+        //    return TypedResults.Ok(updateImage);
+        //}
         //DELETE - Radera en bild
         private static async Task<Results<Ok<string>, NotFound<string>>> DeleteImage(int id, AppDbContext context)
         {

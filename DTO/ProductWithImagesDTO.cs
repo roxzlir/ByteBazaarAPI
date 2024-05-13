@@ -1,4 +1,6 @@
-﻿namespace ByteBazaarAPI.DTO
+﻿using ByteBazaarAPI.Models;
+
+namespace ByteBazaarAPI.DTO
 {
     public class ProductWithImagesDTO
     {
@@ -8,6 +10,6 @@
         public decimal Price { get; set; }
         public string Category { get; set; }
         public int Quantity { get; set; }
-        public List<string> Images { get; set; }
+        public List<ProductImage> Images { get; set; }
     }
 }
