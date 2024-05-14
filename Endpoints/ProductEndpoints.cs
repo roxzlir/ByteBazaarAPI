@@ -1,7 +1,6 @@
 ﻿using ByteBazaarAPI.Data;
 using ByteBazaarAPI.DTO;
 using ByteBazaarAPI.Models;
-
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
