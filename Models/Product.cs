@@ -19,6 +19,7 @@ namespace ByteBazaarAPI.Models
         public int FkCategoryId { get; set; }
         public Category Category { get; set; }
         public int Quantity { get; set; }
+        public ICollection<ProductImage>? Images { get; set; }
 
     }
 }

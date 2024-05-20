@@ -10,7 +10,12 @@ namespace ByteBazaarAPI
     {
         public static void Main(string[] args)
         {
-            
+
+            //Get Products.Where(x => x.FkCategotyId == id)   
+            //Behövs en endpoint för detta, kommer en int id, Behöver även Get Products.Where(x => x.Title.Contains(search), 
+            //kommer en string search i anropet.Så 2 endpoints
+
+
 
             var builder = WebApplication.CreateBuilder(args);
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
