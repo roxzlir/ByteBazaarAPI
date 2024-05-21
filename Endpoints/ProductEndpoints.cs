@@ -26,9 +26,10 @@ namespace ByteBazaarAPI.Endpoints
         private static async Task<Results<Ok<List<ProductWithImagesDTO>>, NotFound<string>>> GetAllProducts(AppDbContext context)
         {
 
-            var query = from image in context.ProductImages
-                        join prod in context.Products on image.FkProductId equals prod.ProductId
+            var query = from prod in context.Products
                         join cat in context.Categories on prod.FkCategoryId equals cat.CategoryId
+                        join image in context.ProductImages on prod.ProductId equals image.FkProductId into images
+                        from img in images.DefaultIfEmpty()
                         select new
                         {
                             ProductId = prod.ProductId,
@@ -40,17 +41,14 @@ namespace ByteBazaarAPI.Endpoints
                             CategoryId = cat.CategoryId,
                             CategoryTitle = cat.Title,
                             CategoryDescription = cat.Description,
-                            ImageId = image.ProductImageId,
-                            ImageUrl = image.URL,
-                            ImageFk = image.FkProductId
-
+                            ImageId = img != null ? img.ProductImageId : (int?)null,
+                            ImageUrl = img != null ? img.URL : null,
+                            ImageFk = img != null ? img.FkProductId : (int?)null
                         };
 
-            //var allProducts = await context.Products.Include(x => x.Category).Include(x => x.ProductImage).ToListAsync();
+            var results = await query.ToListAsync();
 
-
-
-            var grouped = query.GroupBy(x => x.ProductId).Select(grp => new ProductWithImagesDTO
+            var grouped = results.GroupBy(x => x.ProductId).Select(grp => new ProductWithImagesDTO
             {
                 ProductId = grp.Key,
                 Title = grp.First().Title,
@@ -64,15 +62,13 @@ namespace ByteBazaarAPI.Endpoints
                     Title = grp.First().CategoryTitle,
                     Description = grp.First().CategoryDescription
                 },
-
-                Images = grp.Select(x => new ProductImage
+                Images = grp.Where(x => x.ImageId != null).Select(x => new ProductImage
                 {
-                    ProductImageId = x.ImageId,
+                    ProductImageId = x.ImageId.Value,
                     URL = x.ImageUrl,
-                    FkProductId = x.ImageFk
+                    FkProductId = x.ImageFk.Value
                 }).ToList()
             }).ToList();
-
 
             if (!grouped.Any())
             {
@@ -85,57 +81,64 @@ namespace ByteBazaarAPI.Endpoints
         //GET - Hämtar en produkt baserat på ID
         private static async Task<Results<Ok<ProductWithImagesDTO>, NotFound<string>>> GetProductById(int id, AppDbContext context)
         {
-            var query = from image in context.ProductImages
-                        join prod in context.Products on image.FkProductId equals prod.ProductId where prod.ProductId == id
-                        join cat in context.Categories on prod.FkCategoryId equals cat.CategoryId
-                        select new
-                        {
-                            ProductId = prod.ProductId,
-                            Title = prod.Title,
-                            Description = prod.Description,
-                            Price = prod.Price,
-                            Quantity = prod.Quantity,
-                            FkCategoryId = prod.FkCategoryId,
-                            CategoryId = cat.CategoryId,
-                            CategoryTitle = cat.Title,
-                            CategoryDescription = cat.Description,
-                            ImageId = image.ProductImageId,
-                            ImageUrl = image.URL,
-                            ImageFk = image.FkProductId
 
-                        };
+                var query = from prod in context.Products
+                            join cat in context.Categories on prod.FkCategoryId equals cat.CategoryId
+                            join image in context.ProductImages on prod.ProductId equals image.FkProductId into images
+                            from img in images.DefaultIfEmpty()
+                            where prod.ProductId == id
+                            select new
+                            {
+                                ProductId = prod.ProductId,
+                                Title = prod.Title,
+                                Description = prod.Description,
+                                Price = prod.Price,
+                                Quantity = prod.Quantity,
+                                FkCategoryId = prod.FkCategoryId,
+                                CategoryId = cat.CategoryId,
+                                CategoryTitle = cat.Title,
+                                CategoryDescription = cat.Description,
+                                ImageId = img != null ? img.ProductImageId : (int?)null,
+                                ImageUrl = img != null ? img.URL : null,
+                                ImageFk = img != null ? img.FkProductId : (int?)null
+                            };
 
-            var productData = query.ToList();
+                var productData = await query.ToListAsync();
 
-            if (productData == null || !productData.Any())
-            {
-                return TypedResults.NotFound($"Product with id: {id} not found");
-            }
-
-            var grouped = productData.GroupBy(x => x.ProductId).Select(grp => new ProductWithImagesDTO
-            {
-                ProductId = grp.Key,
-                Title = grp.First().Title,
-                Description = grp.First().Description,
-                Price = grp.First().Price,
-                Quantity = grp.First().Quantity,
-                FkCategoryId = grp.First().FkCategoryId,
-                Category = new Category
+                if (productData == null || !productData.Any())
                 {
-                    CategoryId = grp.First().CategoryId,
-                    Title = grp.First().CategoryTitle,
-                    Description = grp.First().CategoryDescription
-                },
-                Images = grp.Select(x => new ProductImage
+                    return TypedResults.NotFound($"Product with id: {id} not found");
+                }
+
+                var grouped = productData.GroupBy(x => x.ProductId).Select(grp => new ProductWithImagesDTO
                 {
-                    ProductImageId = x.ImageId,
-                    URL = x.ImageUrl,
-                    FkProductId = x.ImageFk
-                }).ToList()
-            }).FirstOrDefault();
+                    ProductId = grp.Key,
+                    Title = grp.First().Title,
+                    Description = grp.First().Description,
+                    Price = grp.First().Price,
+                    Quantity = grp.First().Quantity,
+                    FkCategoryId = grp.First().FkCategoryId,
+                    Category = new Category
+                    {
+                        CategoryId = grp.First().CategoryId,
+                        Title = grp.First().CategoryTitle,
+                        Description = grp.First().CategoryDescription
+                    },
+                    Images = grp.Where(x => x.ImageId != null).Select(x => new ProductImage
+                    {
+                        ProductImageId = x.ImageId.Value,
+                        URL = x.ImageUrl,
+                        FkProductId = x.ImageFk.Value
+                    }).ToList()
+                }).FirstOrDefault();
 
+                if (grouped == null)
+                {
+                    return TypedResults.NotFound($"Product with id: {id} not found");
+                }
 
-            return TypedResults.Ok(grouped);
+                return TypedResults.Ok(grouped);
+
         }
         //POST - Lägg till ny produkt
         private static async Task<Results<Created<ProductDTO>, NoContent>> AddProduct(ProductDTO model, AppDbContext context)
