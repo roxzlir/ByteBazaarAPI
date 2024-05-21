@@ -40,7 +40,7 @@ namespace ByteBazaarAPI.Endpoints
             return TypedResults.Ok(category);
         }
         //POST - Lägg till ny kategori
-        private static async Task<Created<CategoryDTO>> AddCategory(CategoryDTO categoryDTO, AppDbContext context)
+        private static async Task<Created> AddCategory(CategoryDTO categoryDTO, AppDbContext context)
         {
             var category = new Category
             {
@@ -49,7 +49,8 @@ namespace ByteBazaarAPI.Endpoints
             };
             context.Categories.Add(category);
             await context.SaveChangesAsync();
-            return TypedResults.Created($"/categories/{categoryDTO.Title}", categoryDTO);
+
+            return TypedResults.Created();
         }
         //PUT - Uppdatera en existerande kategori
         private static async Task<Results<Ok<CategoryDTO>, NotFound<string>>> UpdateCategory(int id, CategoryDTO updatedCategory, AppDbContext context)
