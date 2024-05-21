@@ -15,7 +15,6 @@ namespace ByteBazaarAPI.Endpoints
             app.MapPost("/products/images", AddImage);
             app.MapDelete("/products/images/{id:int}", DeleteImage);
 
-            //app.MapPut("/products/images/{id:int}", UpdateImage);
         }
 
         //GET - Hämtar alla bilder som finns
@@ -51,24 +50,7 @@ namespace ByteBazaarAPI.Endpoints
             await context.SaveChangesAsync();
             return TypedResults.Created($"/product/image/{imageDTO.URL}", imageDTO);
         }
-        //PUT - Uppdatera en existerande bild
-        //private static async Task<Results<Ok<ProductImageDTO>, NotFound<string>>> UpdateImage(int id, ProductImageDTO updateImage, AppDbContext context)
-        //{
-            
-            
-        //    var image = await context.ProductImages.FindAsync();
-
-        //    if (image == null)
-        //    {
-        //        return TypedResults.NotFound($"Image with id: {id} not found");
-        //    }
-        //    image.URL = updateImage.URL;
-        //    image.FkProductId = updateImage.FkProductId;
-
-        //    context.ProductImages.Update(image);
-        //    await context.SaveChangesAsync();
-        //    return TypedResults.Ok(updateImage);
-        //}
+       
         //DELETE - Radera en bild
         private static async Task<Results<Ok<string>, NotFound<string>>> DeleteImage(int id, AppDbContext context)
         {
