@@ -20,6 +20,7 @@ namespace ByteBazaarAPI.Endpoints
             app.MapDelete("/products/{id:int}", DeleteProduct);
             app.MapGet("/category/{id:int}/products", GetProductByCategoryId);
             app.MapGet("/products/search/{search}", GetProductsBySearch);
+            //app.MapGet("/products/results/{id:int}/page/{id:int}", GetProductsPaginated);
         }
 
         //GET - Hämtar alla produkter som finns
@@ -141,7 +142,7 @@ namespace ByteBazaarAPI.Endpoints
 
         }
         //POST - Lägg till ny produkt
-        private static async Task<Results<Created<ProductDTO>, NoContent>> AddProduct(ProductDTO model, AppDbContext context)
+        private static async Task<Results<Created, NoContent>> AddProduct(ProductDTO model, AppDbContext context)
         {
 
             using var transaction = context.Database.BeginTransaction();
@@ -168,7 +169,7 @@ namespace ByteBazaarAPI.Endpoints
                 await context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
-                return TypedResults.Created($"/products/{model}", model);
+                return TypedResults.Created();
             }
             catch (Exception ex)
             {
@@ -332,6 +333,83 @@ namespace ByteBazaarAPI.Endpoints
 
             return TypedResults.Ok(grouped);
         }
+
+        //GET paginated result all products
+        private static async Task<Results<Ok<List<ProductWithImagesDTO>>, NotFound<string>>> GetProductsPaginated(int results, int page, AppDbContext context)
+        {
+            if (results <= 0 || page <= 0)
+            {
+                return TypedResults.NotFound("Invalid pagination parameters");
+            }
+            Console.WriteLine("Start");
+
+            var query = from prod in context.Products
+                        join cat in context.Categories on prod.FkCategoryId equals cat.CategoryId
+                        join image in context.ProductImages on prod.ProductId equals image.FkProductId into images
+                        from img in images.DefaultIfEmpty()
+                        select new
+                        {
+                            ProductId = prod.ProductId,
+                            Title = prod.Title,
+                            Description = prod.Description,
+                            Price = prod.Price,
+                            Quantity = prod.Quantity,
+                            FkCategoryId = prod.FkCategoryId,
+                            CategoryId = cat.CategoryId,
+                            CategoryTitle = cat.Title,
+                            CategoryDescription = cat.Description,
+                            ImageId = img != null ? img.ProductImageId : (int?)null,
+                            ImageUrl = img != null ? img.URL : null,
+                            ImageFk = img != null ? img.FkProductId : (int?)null
+                        };
+
+            var totalResults = await query.CountAsync();
+            if (totalResults == 0)
+            {
+                return TypedResults.NotFound("No products found");
+            }
+
+            var paginatedResults = await query
+            .OrderBy(p => p.ProductId) // Order by ProductId to ensure consistent results
+            .Skip((page - 1) * results)
+            .Take(results)
+            .ToListAsync();
+
+            if (!paginatedResults.Any())
+            {
+                return TypedResults.NotFound("No products found for the given page and result quantity");
+            }
+
+            var grouped = paginatedResults.GroupBy(x => x.ProductId).Select(grp => new ProductWithImagesDTO
+            {
+                ProductId = grp.Key,
+                Title = grp.First().Title,
+                Description = grp.First().Description,
+                Price = grp.First().Price,
+                Quantity = grp.First().Quantity,
+                FkCategoryId = grp.First().FkCategoryId,
+                Category = new Category
+                {
+                    CategoryId = grp.First().CategoryId,
+                    Title = grp.First().CategoryTitle,
+                    Description = grp.First().CategoryDescription
+                },
+                Images = grp.Where(x => x.ImageId != null).Select(x => new ProductImage
+                {
+                    ProductImageId = x.ImageId.Value,
+                    URL = x.ImageUrl,
+                    FkProductId = x.ImageFk.Value
+                }).ToList()
+            }).ToList();
+
+            if (!grouped.Any())
+            {
+                return TypedResults.NotFound("No products found");
+            }
+            Console.WriteLine(grouped);
+            return TypedResults.Ok(grouped);
+        }
+
 
     }
 }

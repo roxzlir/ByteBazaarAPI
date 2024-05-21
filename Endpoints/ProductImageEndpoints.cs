@@ -39,7 +39,7 @@ namespace ByteBazaarAPI.Endpoints
             return TypedResults.Ok(image);
         }
         //POST - Lägg till ny bild
-        private static async Task<Created<ProductImageDTO>> AddImage(ProductImageDTO imageDTO, AppDbContext context)
+        private static async Task<Created> AddImage(ProductImageDTO imageDTO, AppDbContext context)
         {
             var image = new ProductImage
             {
@@ -48,7 +48,7 @@ namespace ByteBazaarAPI.Endpoints
             };
             context.ProductImages.Add(image);
             await context.SaveChangesAsync();
-            return TypedResults.Created($"/product/image/{imageDTO.URL}", imageDTO);
+            return TypedResults.Created();
         }
        
         //DELETE - Radera en bild
