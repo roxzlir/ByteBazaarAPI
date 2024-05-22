@@ -1,4 +1,6 @@
-﻿namespace ByteBazaarAPI.DTO
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ByteBazaarAPI.DTO
 {
     public class ProductDTO
     {
@@ -12,5 +14,8 @@
 
         public int Quantity { get; set; }
         public string ImageURL { get; set; }
+        public bool IsCampaign { get; set; } = false;
+        public decimal CampaignPercent { get; set; } = 1;
+        public decimal TempPrice { get; set; } = 0;
     }
 }

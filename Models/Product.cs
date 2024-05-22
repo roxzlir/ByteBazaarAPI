@@ -19,6 +19,11 @@ namespace ByteBazaarAPI.Models
         public int FkCategoryId { get; set; }
         public Category Category { get; set; }
         public int Quantity { get; set; }
+        public bool IsCampaign {  get; set; } = false;
+        [Column(TypeName = "decimal(3,2)")]
+        public decimal CampaignPercent { get; set; } = 1; 
+        [Column(TypeName = "decimal(10,2)")]
+        public decimal TempPrice { get; set; } = 0;
         
 
     }

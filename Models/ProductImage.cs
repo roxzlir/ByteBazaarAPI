@@ -10,7 +10,7 @@ namespace ByteBazaarAPI.Models
         [StringLength(250)]
         public string URL { get; set; }
         [Required]
-        [ForeignKey("Product")]
         public int FkProductId { get; set; }
+
     }
 }
