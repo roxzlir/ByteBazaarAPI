@@ -1,5 +1,6 @@
 ﻿using ByteBazaarAPI.Data;
 using ByteBazaarAPI.DTO;
+using ByteBazaarAPI.Migrations;
 using ByteBazaarAPI.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +39,9 @@ namespace ByteBazaarAPI.Endpoints
                             Description = prod.Description,
                             Price = prod.Price,
                             Quantity = prod.Quantity,
+                            IsCampaign = prod.IsCampaign,
+                            CampaignPercent = prod.CampaignPercent,
+                            TempPrice = prod.TempPrice,
                             FkCategoryId = prod.FkCategoryId,
                             CategoryId = cat.CategoryId,
                             CategoryTitle = cat.Title,
@@ -57,6 +61,9 @@ namespace ByteBazaarAPI.Endpoints
                 Price = grp.First().Price,
                 Quantity = grp.First().Quantity,
                 FkCategoryId = grp.First().FkCategoryId,
+                IsCampaign = grp.First().IsCampaign,
+                CampaignPercent = grp.First().CampaignPercent,
+                TempPrice = grp.First().TempPrice,
                 Category = new Category
                 {
                     CategoryId = grp.First().CategoryId,
@@ -96,6 +103,9 @@ namespace ByteBazaarAPI.Endpoints
                                 Price = prod.Price,
                                 Quantity = prod.Quantity,
                                 FkCategoryId = prod.FkCategoryId,
+                                IsCampaign = prod.IsCampaign,
+                                CampaignPercent = prod.CampaignPercent,
+                                TempPrice = prod.TempPrice,
                                 CategoryId = cat.CategoryId,
                                 CategoryTitle = cat.Title,
                                 CategoryDescription = cat.Description,
@@ -118,6 +128,9 @@ namespace ByteBazaarAPI.Endpoints
                     Description = grp.First().Description,
                     Price = grp.First().Price,
                     Quantity = grp.First().Quantity,
+                    IsCampaign = grp.First().IsCampaign,
+                    CampaignPercent = grp.First().CampaignPercent,
+                    TempPrice = grp.First().TempPrice,
                     FkCategoryId = grp.First().FkCategoryId,
                     Category = new Category
                     {
@@ -154,7 +167,10 @@ namespace ByteBazaarAPI.Endpoints
                     Description = model.Description,
                     Price = model.Price,
                     FkCategoryId = model.FkCategoryId,
-                    Quantity = model.Quantity
+                    Quantity = model.Quantity,
+                    IsCampaign = model.IsCampaign,
+                    CampaignPercent = model.CampaignPercent,
+                    TempPrice = model.TempPrice,
                 };
 
                 context.Products.Add(product);
@@ -202,6 +218,9 @@ namespace ByteBazaarAPI.Endpoints
             product.Price = updatedProduct.Price;
             product.FkCategoryId = updatedProduct.FkCategoryId;
             product.Quantity = updatedProduct.Quantity;
+            product.IsCampaign = updatedProduct.IsCampaign;
+            product.CampaignPercent = updatedProduct.CampaignPercent;
+            product.TempPrice = updatedProduct.TempPrice;
 
 
             context.Products.Update(product);
@@ -235,6 +254,9 @@ namespace ByteBazaarAPI.Endpoints
                             Description = prod.Description,
                             Price = prod.Price,
                             Quantity = prod.Quantity,
+                            IsCampaign = prod.IsCampaign,
+                            CampaignPercent = prod.CampaignPercent,
+                            TempPrice = prod.TempPrice,
                             FkCategoryId = prod.FkCategoryId,
                             CategoryId = cat.CategoryId,
                             CategoryTitle = cat.Title,
@@ -259,6 +281,9 @@ namespace ByteBazaarAPI.Endpoints
                 Description = grp.First().Description,
                 Price = grp.First().Price,
                 Quantity = grp.First().Quantity,
+                IsCampaign = grp.First().IsCampaign,
+                CampaignPercent = grp.First().CampaignPercent,
+                TempPrice = grp.First().TempPrice,
                 FkCategoryId = grp.First().FkCategoryId,
                 Category = new Category
                 {
@@ -292,6 +317,9 @@ namespace ByteBazaarAPI.Endpoints
                             Description = prod.Description,
                             Price = prod.Price,
                             Quantity = prod.Quantity,
+                            IsCampaign = prod.IsCampaign,
+                            CampaignPercent = prod.CampaignPercent,
+                            TempPrice = prod.TempPrice,
                             FkCategoryId = prod.FkCategoryId,
                             CategoryId = cat.CategoryId,
                             CategoryTitle = cat.Title,
@@ -309,6 +337,9 @@ namespace ByteBazaarAPI.Endpoints
                 Description = grp.First().Description,
                 Price = grp.First().Price,
                 Quantity = grp.First().Quantity,
+                IsCampaign = grp.First().IsCampaign,
+                CampaignPercent = grp.First().CampaignPercent,
+                TempPrice = grp.First().TempPrice,
                 FkCategoryId = grp.First().FkCategoryId,
                 Category = new Category
                 {
@@ -354,6 +385,9 @@ namespace ByteBazaarAPI.Endpoints
                             Description = prod.Description,
                             Price = prod.Price,
                             Quantity = prod.Quantity,
+                            IsCampaign = prod.IsCampaign,
+                            CampaignPercent = prod.CampaignPercent,
+                            TempPrice = prod.TempPrice,
                             FkCategoryId = prod.FkCategoryId,
                             CategoryId = cat.CategoryId,
                             CategoryTitle = cat.Title,
@@ -387,6 +421,9 @@ namespace ByteBazaarAPI.Endpoints
                 Description = grp.First().Description,
                 Price = grp.First().Price,
                 Quantity = grp.First().Quantity,
+                IsCampaign = grp.First().IsCampaign,
+                CampaignPercent = grp.First().CampaignPercent,
+                TempPrice = grp.First().TempPrice,
                 FkCategoryId = grp.First().FkCategoryId,
                 Category = new Category
                 {

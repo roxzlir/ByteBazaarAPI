@@ -45,8 +45,8 @@ namespace ByteBazaarAPI
             app.MapCategoryEndpoints();
             app.MapProductImageEndpoints();
 
-
-
+             //Lägga till properties - bool is 
+            //
             app.Run();
         }
     }
