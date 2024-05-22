@@ -21,7 +21,7 @@ namespace ByteBazaarAPI.Endpoints
             app.MapDelete("/products/{id:int}", DeleteProduct);
             app.MapGet("/category/{id:int}/products", GetProductByCategoryId);
             app.MapGet("/products/search/{search}", GetProductsBySearch);
-            //app.MapGet("/products/results/{id:int}/page/{id:int}", GetProductsPaginated);
+            app.MapGet("/products/results/{results:int}/page/{page:int}", GetProductsPaginated);
         }
 
         //GET - Hämtar alla produkter som finns
@@ -44,7 +44,7 @@ namespace ByteBazaarAPI.Endpoints
 
             await context.SaveChangesAsync();
 
-                
+
             var query = from prod in context.Products
                         join cat in context.Categories on prod.FkCategoryId equals cat.CategoryId
                         join image in context.ProductImages on prod.ProductId equals image.FkProductId into images
@@ -112,72 +112,72 @@ namespace ByteBazaarAPI.Endpoints
         private static async Task<Results<Ok<ProductWithImagesDTO>, NotFound<string>>> GetProductById(int id, AppDbContext context)
         {
 
-                var query = from prod in context.Products
-                            join cat in context.Categories on prod.FkCategoryId equals cat.CategoryId
-                            join image in context.ProductImages on prod.ProductId equals image.FkProductId into images
-                            from img in images.DefaultIfEmpty()
-                            where prod.ProductId == id
-                            select new
-                            {
-                                ProductId = prod.ProductId,
-                                Title = prod.Title,
-                                Description = prod.Description,
-                                Price = prod.Price,
-                                Quantity = prod.Quantity,
-                                FkCategoryId = prod.FkCategoryId,
-                                IsCampaign = prod.IsCampaign,
-                                CampaignPercent = prod.CampaignPercent,
-                                TempPrice = prod.TempPrice,
-                                CampaignStart = prod.CampaignStart,
-                                CampaignEnd = prod.CampaignEnd,
-                                CategoryId = cat.CategoryId,
-                                CategoryTitle = cat.Title,
-                                CategoryDescription = cat.Description,
-                                ImageId = img != null ? img.ProductImageId : (int?)null,
-                                ImageUrl = img != null ? img.URL : null,
-                                ImageFk = img != null ? img.FkProductId : (int?)null
-                            };
+            var query = from prod in context.Products
+                        join cat in context.Categories on prod.FkCategoryId equals cat.CategoryId
+                        join image in context.ProductImages on prod.ProductId equals image.FkProductId into images
+                        from img in images.DefaultIfEmpty()
+                        where prod.ProductId == id
+                        select new
+                        {
+                            ProductId = prod.ProductId,
+                            Title = prod.Title,
+                            Description = prod.Description,
+                            Price = prod.Price,
+                            Quantity = prod.Quantity,
+                            FkCategoryId = prod.FkCategoryId,
+                            IsCampaign = prod.IsCampaign,
+                            CampaignPercent = prod.CampaignPercent,
+                            TempPrice = prod.TempPrice,
+                            CampaignStart = prod.CampaignStart,
+                            CampaignEnd = prod.CampaignEnd,
+                            CategoryId = cat.CategoryId,
+                            CategoryTitle = cat.Title,
+                            CategoryDescription = cat.Description,
+                            ImageId = img != null ? img.ProductImageId : (int?)null,
+                            ImageUrl = img != null ? img.URL : null,
+                            ImageFk = img != null ? img.FkProductId : (int?)null
+                        };
 
-                var productData = await query.ToListAsync();
+            var productData = await query.ToListAsync();
 
-                if (productData == null || !productData.Any())
+            if (productData == null || !productData.Any())
+            {
+                return TypedResults.NotFound($"Product with id: {id} not found");
+            }
+
+            var grouped = productData.GroupBy(x => x.ProductId).Select(grp => new ProductWithImagesDTO
+            {
+                ProductId = grp.Key,
+                Title = grp.First().Title,
+                Description = grp.First().Description,
+                Price = grp.First().Price,
+                Quantity = grp.First().Quantity,
+                IsCampaign = grp.First().IsCampaign,
+                CampaignPercent = grp.First().CampaignPercent,
+                TempPrice = grp.First().TempPrice,
+                CampaignStart = grp.First().CampaignStart,
+                CampaignEnd = grp.First().CampaignEnd,
+                FkCategoryId = grp.First().FkCategoryId,
+                Category = new Category
                 {
-                    return TypedResults.NotFound($"Product with id: {id} not found");
-                }
-
-                var grouped = productData.GroupBy(x => x.ProductId).Select(grp => new ProductWithImagesDTO
+                    CategoryId = grp.First().CategoryId,
+                    Title = grp.First().CategoryTitle,
+                    Description = grp.First().CategoryDescription
+                },
+                Images = grp.Where(x => x.ImageId != null).Select(x => new ProductImage
                 {
-                    ProductId = grp.Key,
-                    Title = grp.First().Title,
-                    Description = grp.First().Description,
-                    Price = grp.First().Price,
-                    Quantity = grp.First().Quantity,
-                    IsCampaign = grp.First().IsCampaign,
-                    CampaignPercent = grp.First().CampaignPercent,
-                    TempPrice = grp.First().TempPrice,
-                    CampaignStart = grp.First().CampaignStart,
-                    CampaignEnd = grp.First().CampaignEnd,
-                    FkCategoryId = grp.First().FkCategoryId,
-                    Category = new Category
-                    {
-                        CategoryId = grp.First().CategoryId,
-                        Title = grp.First().CategoryTitle,
-                        Description = grp.First().CategoryDescription
-                    },
-                    Images = grp.Where(x => x.ImageId != null).Select(x => new ProductImage
-                    {
-                        ProductImageId = x.ImageId.Value,
-                        URL = x.ImageUrl,
-                        FkProductId = x.ImageFk.Value
-                    }).ToList()
-                }).FirstOrDefault();
+                    ProductImageId = x.ImageId.Value,
+                    URL = x.ImageUrl,
+                    FkProductId = x.ImageFk.Value
+                }).ToList()
+            }).FirstOrDefault();
 
-                if (grouped == null)
-                {
-                    return TypedResults.NotFound($"Product with id: {id} not found");
-                }
+            if (grouped == null)
+            {
+                return TypedResults.NotFound($"Product with id: {id} not found");
+            }
 
-                return TypedResults.Ok(grouped);
+            return TypedResults.Ok(grouped);
 
         }
         //POST - Lägg till ny produkt
@@ -259,7 +259,7 @@ namespace ByteBazaarAPI.Endpoints
         private static async Task<Results<Ok<string>, NotFound<string>>> DeleteProduct(int id, AppDbContext context)
         {
             var product = await context.Products.FindAsync(id);
-            if(product == null)
+            if (product == null)
             {
                 return TypedResults.NotFound($"Product with id: {id} not found");
             }
@@ -376,8 +376,8 @@ namespace ByteBazaarAPI.Endpoints
                 TempPrice = grp.First().TempPrice,
                 FkCategoryId = grp.First().FkCategoryId,
                 CampaignStart = grp.First().CampaignStart,
-                CampaignEnd = grp.First().CampaignEnd,  
-                
+                CampaignEnd = grp.First().CampaignEnd,
+
                 Category = new Category
                 {
                     CategoryId = grp.First().CategoryId,
@@ -409,7 +409,6 @@ namespace ByteBazaarAPI.Endpoints
             {
                 return TypedResults.NotFound("Invalid pagination parameters");
             }
-            Console.WriteLine("Start");
 
             var query = from prod in context.Products
                         join cat in context.Categories on prod.FkCategoryId equals cat.CategoryId
@@ -436,36 +435,25 @@ namespace ByteBazaarAPI.Endpoints
                             ImageFk = img != null ? img.FkProductId : (int?)null
                         };
 
-            var totalResults = await query.CountAsync();
-            if (totalResults == 0)
+            var resultsList = await query.ToListAsync();
+            if (!resultsList.Any())
             {
                 return TypedResults.NotFound("No products found");
             }
 
-            var paginatedResults = await query
-            .OrderBy(p => p.ProductId) // Order by ProductId to ensure consistent results
-            .Skip((page - 1) * results)
-            .Take(results)
-            .ToListAsync();
-
-            if (!paginatedResults.Any())
-            {
-                return TypedResults.NotFound("No products found for the given page and result quantity");
-            }
-
-            var grouped = paginatedResults.GroupBy(x => x.ProductId).Select(grp => new ProductWithImagesDTO
+            var grouped = resultsList.GroupBy(x => x.ProductId).Select(grp => new ProductWithImagesDTO
             {
                 ProductId = grp.Key,
                 Title = grp.First().Title,
                 Description = grp.First().Description,
                 Price = grp.First().Price,
                 Quantity = grp.First().Quantity,
+                FkCategoryId = grp.First().FkCategoryId,
                 IsCampaign = grp.First().IsCampaign,
                 CampaignPercent = grp.First().CampaignPercent,
                 TempPrice = grp.First().TempPrice,
                 CampaignStart = grp.First().CampaignStart,
                 CampaignEnd = grp.First().CampaignEnd,
-                FkCategoryId = grp.First().FkCategoryId,
                 Category = new Category
                 {
                     CategoryId = grp.First().CategoryId,
@@ -480,14 +468,14 @@ namespace ByteBazaarAPI.Endpoints
                 }).ToList()
             }).ToList();
 
-            if (!grouped.Any())
+            var paginatedResults = grouped.Skip((page - 1) * results).Take(results).ToList();
+
+            if (!paginatedResults.Any())
             {
-                return TypedResults.NotFound("No products found");
+                return TypedResults.NotFound("No products found for the given page and result quantity");
             }
-            Console.WriteLine(grouped);
-            return TypedResults.Ok(grouped);
+
+            return TypedResults.Ok(paginatedResults);
         }
-
-
     }
 }
