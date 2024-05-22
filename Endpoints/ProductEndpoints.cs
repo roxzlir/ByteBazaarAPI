@@ -1,11 +1,11 @@
 ﻿using ByteBazaarAPI.Data;
 using ByteBazaarAPI.DTO;
-using ByteBazaarAPI.Migrations;
 using ByteBazaarAPI.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.RegularExpressions;
 
 
 namespace ByteBazaarAPI.Endpoints
@@ -27,7 +27,24 @@ namespace ByteBazaarAPI.Endpoints
         //GET - Hämtar alla produkter som finns
         private static async Task<Results<Ok<List<ProductWithImagesDTO>>, NotFound<string>>> GetAllProducts(AppDbContext context)
         {
+            var products = context.Products.ToList();
 
+            foreach (var item in products)
+            {
+                if (item.CampaignEnd != null)
+                {
+                    if (item.CampaignEnd <= DateTime.UtcNow)
+                    {
+
+                        item.IsCampaign = false;
+                        context.Products.Update(item);
+                    }
+                }
+            }
+
+            await context.SaveChangesAsync();
+
+                
             var query = from prod in context.Products
                         join cat in context.Categories on prod.FkCategoryId equals cat.CategoryId
                         join image in context.ProductImages on prod.ProductId equals image.FkProductId into images
@@ -42,6 +59,8 @@ namespace ByteBazaarAPI.Endpoints
                             IsCampaign = prod.IsCampaign,
                             CampaignPercent = prod.CampaignPercent,
                             TempPrice = prod.TempPrice,
+                            CampaignStart = prod.CampaignStart,
+                            CampaignEnd = prod.CampaignEnd,
                             FkCategoryId = prod.FkCategoryId,
                             CategoryId = cat.CategoryId,
                             CategoryTitle = cat.Title,
@@ -50,6 +69,7 @@ namespace ByteBazaarAPI.Endpoints
                             ImageUrl = img != null ? img.URL : null,
                             ImageFk = img != null ? img.FkProductId : (int?)null
                         };
+
 
             var results = await query.ToListAsync();
 
@@ -64,6 +84,8 @@ namespace ByteBazaarAPI.Endpoints
                 IsCampaign = grp.First().IsCampaign,
                 CampaignPercent = grp.First().CampaignPercent,
                 TempPrice = grp.First().TempPrice,
+                CampaignStart = grp.First().CampaignStart,
+                CampaignEnd = grp.First().CampaignEnd,
                 Category = new Category
                 {
                     CategoryId = grp.First().CategoryId,
@@ -106,6 +128,8 @@ namespace ByteBazaarAPI.Endpoints
                                 IsCampaign = prod.IsCampaign,
                                 CampaignPercent = prod.CampaignPercent,
                                 TempPrice = prod.TempPrice,
+                                CampaignStart = prod.CampaignStart,
+                                CampaignEnd = prod.CampaignEnd,
                                 CategoryId = cat.CategoryId,
                                 CategoryTitle = cat.Title,
                                 CategoryDescription = cat.Description,
@@ -131,6 +155,8 @@ namespace ByteBazaarAPI.Endpoints
                     IsCampaign = grp.First().IsCampaign,
                     CampaignPercent = grp.First().CampaignPercent,
                     TempPrice = grp.First().TempPrice,
+                    CampaignStart = grp.First().CampaignStart,
+                    CampaignEnd = grp.First().CampaignEnd,
                     FkCategoryId = grp.First().FkCategoryId,
                     Category = new Category
                     {
@@ -171,6 +197,8 @@ namespace ByteBazaarAPI.Endpoints
                     IsCampaign = model.IsCampaign,
                     CampaignPercent = model.CampaignPercent,
                     TempPrice = model.TempPrice,
+                    CampaignStart = model.CampaignStart,
+                    CampaignEnd = model.CampaignEnd
                 };
 
                 context.Products.Add(product);
@@ -210,8 +238,6 @@ namespace ByteBazaarAPI.Endpoints
             {
                 return TypedResults.NotFound($"Product with id: {id} not found");
             }
-            /*product = updatedProduct;*/ //Vet ej om detta räcker egentligen bara?
-
 
             product.Title = updatedProduct.Title;
             product.Description = updatedProduct.Description;
@@ -221,6 +247,8 @@ namespace ByteBazaarAPI.Endpoints
             product.IsCampaign = updatedProduct.IsCampaign;
             product.CampaignPercent = updatedProduct.CampaignPercent;
             product.TempPrice = updatedProduct.TempPrice;
+            product.CampaignStart = updatedProduct.CampaignStart;
+            product.CampaignEnd = updatedProduct.CampaignEnd;
 
 
             context.Products.Update(product);
@@ -257,6 +285,8 @@ namespace ByteBazaarAPI.Endpoints
                             IsCampaign = prod.IsCampaign,
                             CampaignPercent = prod.CampaignPercent,
                             TempPrice = prod.TempPrice,
+                            CampaignStart = prod.CampaignStart,
+                            CampaignEnd = prod.CampaignEnd,
                             FkCategoryId = prod.FkCategoryId,
                             CategoryId = cat.CategoryId,
                             CategoryTitle = cat.Title,
@@ -285,6 +315,8 @@ namespace ByteBazaarAPI.Endpoints
                 CampaignPercent = grp.First().CampaignPercent,
                 TempPrice = grp.First().TempPrice,
                 FkCategoryId = grp.First().FkCategoryId,
+                CampaignStart = grp.First().CampaignStart,
+                CampaignEnd = grp.First().CampaignEnd,
                 Category = new Category
                 {
                     CategoryId = grp.First().CategoryId,
@@ -320,6 +352,8 @@ namespace ByteBazaarAPI.Endpoints
                             IsCampaign = prod.IsCampaign,
                             CampaignPercent = prod.CampaignPercent,
                             TempPrice = prod.TempPrice,
+                            CampaignStart = prod.CampaignStart,
+                            CampaignEnd = prod.CampaignEnd,
                             FkCategoryId = prod.FkCategoryId,
                             CategoryId = cat.CategoryId,
                             CategoryTitle = cat.Title,
@@ -341,6 +375,9 @@ namespace ByteBazaarAPI.Endpoints
                 CampaignPercent = grp.First().CampaignPercent,
                 TempPrice = grp.First().TempPrice,
                 FkCategoryId = grp.First().FkCategoryId,
+                CampaignStart = grp.First().CampaignStart,
+                CampaignEnd = grp.First().CampaignEnd,  
+                
                 Category = new Category
                 {
                     CategoryId = grp.First().CategoryId,
@@ -388,6 +425,8 @@ namespace ByteBazaarAPI.Endpoints
                             IsCampaign = prod.IsCampaign,
                             CampaignPercent = prod.CampaignPercent,
                             TempPrice = prod.TempPrice,
+                            CampaignStart = prod.CampaignStart,
+                            CampaignEnd = prod.CampaignEnd,
                             FkCategoryId = prod.FkCategoryId,
                             CategoryId = cat.CategoryId,
                             CategoryTitle = cat.Title,
@@ -424,6 +463,8 @@ namespace ByteBazaarAPI.Endpoints
                 IsCampaign = grp.First().IsCampaign,
                 CampaignPercent = grp.First().CampaignPercent,
                 TempPrice = grp.First().TempPrice,
+                CampaignStart = grp.First().CampaignStart,
+                CampaignEnd = grp.First().CampaignEnd,
                 FkCategoryId = grp.First().FkCategoryId,
                 Category = new Category
                 {

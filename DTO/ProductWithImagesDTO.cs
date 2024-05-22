@@ -14,6 +14,8 @@ namespace ByteBazaarAPI.DTO
         public bool IsCampaign { get; set; } = false;
         public decimal CampaignPercent { get; set; } = 1;
         public decimal TempPrice { get; set; } = 0;
+        public DateTime? CampaignStart { get; set; }
+        public DateTime? CampaignEnd { get; set; }
         public Category Category { get; set; }
         public List<ProductImage> Images { get; set; }
     }

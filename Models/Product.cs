@@ -21,10 +21,12 @@ namespace ByteBazaarAPI.Models
         public int Quantity { get; set; }
         public bool IsCampaign {  get; set; } = false;
         [Column(TypeName = "decimal(3,2)")]
-        public decimal CampaignPercent { get; set; } = 1; 
+        public decimal CampaignPercent { get; set; } = 1;
         [Column(TypeName = "decimal(10,2)")]
         public decimal TempPrice { get; set; } = 0;
-        
+        public DateTime? CampaignStart { get; set; }
+        public DateTime? CampaignEnd { get; set; }
+
 
     }
 }
