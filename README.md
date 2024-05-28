@@ -14,9 +14,9 @@ We have used ASP.Core with C# for this API build.
 
 ### Our endpoint
 #### GET requests
-##### -> /products - All Products
-##### -> /products/{id:int} - Product by ID
-##### -> /category/{id:int}/products - Products by Category ID
+##### /products - All Products
+##### /products/{id:int} - Product by ID
+##### /category/{id:int}/products - Products by Category ID
 ##### -> /products/search/{search} - Search for Product titles
 ##### -> /products/results/{results:int}/page/{page:int} - Products Paginated Result
 ##### -> /categories - All Categories
