@@ -17,26 +17,26 @@ We have used ASP.Core with C# for this API build.
 ##### /products - All Products
 ##### /products/{id:int} - Product by ID
 ##### /category/{id:int}/products - Products by Category ID
-##### -> /products/search/{search} - Search for Product titles
-##### -> /products/results/{results:int}/page/{page:int} - Products Paginated Result
-##### -> /categories - All Categories
-##### -> /categories/{id:int} - Category by ID
-##### -> /products/images - All Images
-##### -> /products/images/{id:int} - Image by ID
+##### /products/search/{search} - Search for Product titles
+##### /products/results/{results:int}/page/{page:int} - Products Paginated Result
+##### /categories - All Categories
+##### /categories/{id:int} - Category by ID
+##### /products/images - All Images
+##### /products/images/{id:int} - Image by ID
 
 #### POST requests
-##### -> /products - Add Product
-##### -> /categories - Add Category
-##### -> /products/images - Add Image
+##### /products - Add Product
+##### /categories - Add Category
+##### /products/images - Add Image
 
 #### PUT requests
-##### -> /products/{id:int} -  Update Product
-##### -> /categories/{id:int} . Update Category
+##### /products/{id:int} -  Update Product
+##### /categories/{id:int} . Update Category
 
 #### DELETE requests
-##### -> /products/{id:int} - Delete Product           
-##### -> /categories/{id:int} - Delete Category
-##### -> /products/images/{id:int} - Delete Image
+##### /products/{id:int} - Delete Product           
+##### /categories/{id:int} - Delete Category
+##### /products/images/{id:int} - Delete Image
 
 
 #### Thank you for using Debug Thugs Application
