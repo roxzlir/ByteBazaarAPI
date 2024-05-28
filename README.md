@@ -31,7 +31,7 @@ We have used ASP.Core with C# for this API build.
 
 #### PUT requests
 ##### /products/{id:int} -  Update Product
-##### /categories/{id:int} . Update Category
+##### /categories/{id:int} - Update Category
 
 #### DELETE requests
 ##### /products/{id:int} - Delete Product           
