@@ -3,7 +3,7 @@ https://bytebazaarapi.azurewebsites.net/
 ##### WEB SHOP
 https://bytebazaarclient.azurewebsites.net/
 
-# ByteBazaar API - in use in the ByteBazaar web shop!
+# ByteBazaar API - in use at the ByteBazaar web shop!
 ## Debug Thug's API application
 We received a task to create an web shop and an API service that is meant to be used together. 
 
